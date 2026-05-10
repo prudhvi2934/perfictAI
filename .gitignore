@@ -1,0 +1,32 @@
+# Secrets & credentials
+.env
+token.json
+credentials.json
+
+# Personal financial data — never commit
+data/finance.db
+data/finance.db-shm
+data/finance.db-wal
+data/finance.md
+data/finance_current_month.md
+data/finance_archive.md
+data/finance_rules.md
+
+# Python
+backend/.venv/
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+.pytest_cache/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+
+# Frontend (when added)
+frontend/node_modules/
+frontend/dist/
+frontend/.next/
+frontend/.nuxt/
+
+# macOS
+.DS_Store
