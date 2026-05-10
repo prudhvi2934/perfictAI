@@ -1,0 +1,94 @@
+.card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+/* Top row: merchant name on the left, amount on the right */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.merchant {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.amount {
+  font-weight: 700;
+  font-size: 16px;
+  color: #111827;
+}
+
+/* Date + description in a lighter colour */
+.card-meta {
+  display: flex;
+  gap: 12px;
+  color: #6b7280;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.desc {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Controls row: dropdowns + button in a single line */
+.card-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-controls label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.card-controls select {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.approve-btn {
+  margin-left: auto;
+  padding: 7px 20px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.approve-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.approve-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #dc2626;
+}

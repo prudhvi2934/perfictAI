@@ -1,0 +1,17 @@
+/* Global reset + base styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #f0f2f5;
+  color: #1a1a1a;
+  font-size: 15px;
+}
+
+#root {
+  min-height: 100vh;
+}
