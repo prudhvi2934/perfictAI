@@ -31,5 +31,6 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-# Nightly wiki refresh — add to system crontab:
-#   0 2 * * * curl -s -X POST http://localhost:8000/wiki/refresh
+# Nightly wiki refresh — add to system crontab for each user:
+#   0 2 * * * curl -s -H "X-User-ID: alice" -X POST http://localhost:8000/wiki/refresh
+#   0 2 * * * curl -s -H "X-User-ID: bob" -X POST http://localhost:8000/wiki/refresh

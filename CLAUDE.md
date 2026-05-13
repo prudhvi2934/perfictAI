@@ -9,16 +9,11 @@
 
 ## What is this project?
 
-A **local-first, AI-powered personal finance assistant** built for a single user.
+A **local-first, AI-powered personal finance assistant** supporting multiple family members or users.
 
-It ingests bank alert emails from Gmail, classifies every transaction, stores
-everything in a local SQLite database, and maintains a living `finance.md`
-markdown wiki that an LLM reads and writes to build up financial memory over
-time. A React/Vue dashboard visualises spending through the 50/30/20 framework.
-An AI chat interface lets the user query their finances in natural language.
+It ingests bank alert emails from Gmail, classifies every transaction, stores everything in a local SQLite database with per-user isolation, and maintains individual `finance.md` markdown wikis for each user. An LLM reads and writes these wikis to build up financial memory over time. A React/Vue dashboard visualises each user's spending through the 50/30/20 framework. An AI chat interface lets users query their finances in natural language.
 
-**The one-line rule:** All data stays on the machine. Nothing personal ever
-reaches an external service in raw form.
+**The one-line rule:** All data stays on the machine. Nothing personal ever reaches an external service in raw form. Each user's data is isolated and inaccessible to other users.
 
 ---
 
@@ -29,8 +24,11 @@ reaches an external service in raw form.
 ├── CLAUDE.md                  ← you are here (universal rules)
 ├── decisions.md
 ├── data/ 
-│   ├── finance.md                 ← AI-maintained financial wiki (runtime artifact)
-│   ├── finance.db                 ← SQLite database (runtime artifact)
+│   ├── finance.db                 ← Single SQLite DB (all users' data)
+│   ├── <user_id>/                 ← Per-user directory
+│   │   ├── finance_current_month.md    ← AI-maintained wiki for current month
+│   │   ├── finance_archive.md          ← Historical monthly summaries
+│   │   └── finance_rules.md            ← User's transaction classification rules
 │
 ├── backend/                   ← Python / FastAPI
 │   ├── CLAUDE.md              ← backend-specific rules
@@ -42,6 +40,7 @@ reaches an external service in raw form.
 │   ├── wiki/                  ← finance.md read/write logic
 │   ├── guardrails/            ← data sanitisation before any LLM call
 │   └── routers/               ← FastAPI route handlers
+│       └── dependencies.py    ← Shared dependency injection (user_id extraction)
 │
 └── frontend/                  ← React or Vue (TBD)
     ├── CLAUDE.md              ← frontend-specific rules
@@ -123,7 +122,8 @@ DB schema, API responses, and frontend.
 - **User-written annotations are ground truth.** The AI must preserve and respect them.
 - The AI reads the wiki before every chat interaction — this replaces repeated raw DB queries.
 - Format: plain markdown. No JSON blocks, no tables of raw numbers.
-- Location: always at the project root as `finance.md`
+- Location: per-user directory at `data/<user_id>/finance_current_month.md`
+- Archive: historical summaries stored in `data/<user_id>/finance_archive.md`
 
 ---
 
@@ -146,18 +146,55 @@ through.
 
 ---
 
+## Multi-User Architecture
+
+### User Identification
+
+- Clients provide user identity via **`X-User-ID` HTTP header** on every request
+- No authentication layer yet — simple header-based identification
+- Users are identified by string ID (e.g., "alice", "bob")
+- All routes require this header; missing header returns 401
+
+### Data Isolation
+
+**Database (SQLite):**
+- Single shared `finance.db` file with `user_id` on all tables
+- `transactions` table: `UNIQUE(user_id, email_message_id)` composite key ensures no cross-user duplication
+- `processed_emails` table: `PRIMARY KEY (user_id, message_id)` for per-user deduplication
+- All queries filter by `user_id` — no cross-user data leakage possible
+
+**File System:**
+- Each user gets a directory: `data/<user_id>/`
+- User's wiki files: `data/<user_id>/finance_current_month.md`, `data/<user_id>/finance_archive.md`
+- User's rules file: `data/<user_id>/finance_rules.md`
+
+**API Contracts:**
+- All routes in `routers/` depend on `get_user_id()` from `routers/dependencies.py`
+- Manager dependencies (`get_rules_manager()`, `get_wiki_manager()`) construct user-scoped paths
+- Database queries accept `user_id` as first parameter after `conn`
+
+### Future Multi-User Features (Out of Scope)
+
+- ✗ Real authentication (currently: header-based only)
+- ✗ Per-user Gmail credentials (currently: shared global credentials)
+- ✗ Shared dashboards or aggregated reports across users
+- ✗ Per-user budget customization (50/30/20 remains global)
+
+---
+
 ## Tech stack decisions (locked)
 
 | Layer | Decision | Reason |
 |---|---|---|
 | Backend language | Python | FastAPI ecosystem, LLM library support |
 | API framework | FastAPI | Async, typed, auto-docs |
-| Database | SQLite (local file) | Zero-infrastructure, single-user, local-first |
+| Database | SQLite (local file) | Zero-infrastructure, local-first, multi-user via user_id column |
 | AI memory | `finance.md` markdown wiki | Human-readable, Git-friendly, cheap LLM context |
 | LLM provider | Gemini free API (via `LLMClient`) | Free tier, swappable via abstraction |
 | Email source | Gmail API | Only supported ingestion method in Phase 1 |
 | Frontend | React or Vue (TBD) | Local web app served by FastAPI or standalone dev server |
 | Hosting | Local machine only | Privacy is non-negotiable |
+| User identification | X-User-ID header | Simple multi-user support, no auth layer in Phase 1 |
 
 > Do not suggest alternatives to these unless the user explicitly opens the
 > decision for reconsideration.

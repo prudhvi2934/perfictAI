@@ -15,16 +15,11 @@ from db.schema import get_connection
 from wiki.rules_manager import FinanceRule, RulesManager
 from wiki.wiki_manager import WikiManager
 from llm.client import LLMClient
+from routers.dependencies import get_user_id
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
 _DATA_DIR = Path(__file__).parent.parent.parent / "data"
-_RULES_PATH = _DATA_DIR / "finance_rules.md"
-_CURRENT_WIKI_PATH = _DATA_DIR / "finance_current_month.md"
-_ARCHIVE_WIKI_PATH = _DATA_DIR / "finance_archive.md"
-
-_VALID_TYPES = {"expense", "investment", "loan_repayment", "credit", "others"}
-_VALID_BUCKETS = {"fundamentals", "fun", "future_you", "unknown"}
 
 
 # ---------------------------------------------------------------------------
@@ -77,13 +72,16 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
         conn.close()
 
 
-def get_rules_manager() -> RulesManager:
-    return RulesManager(_RULES_PATH)
+def get_rules_manager(user_id: str = Depends(get_user_id)) -> RulesManager:
+    rules_path = _DATA_DIR / user_id / "finance_rules.md"
+    return RulesManager(rules_path)
 
 
-def get_wiki_manager() -> WikiManager:
+def get_wiki_manager(user_id: str = Depends(get_user_id)) -> WikiManager:
     llm = LLMClient()
-    return WikiManager(llm, _CURRENT_WIKI_PATH, _ARCHIVE_WIKI_PATH)
+    current_path = _DATA_DIR / user_id / "finance_current_month.md"
+    archive_path = _DATA_DIR / user_id / "finance_archive.md"
+    return WikiManager(llm, current_path, archive_path)
 
 
 def _txn_to_out(txn: Transaction) -> TransactionOut:
@@ -109,10 +107,11 @@ def _txn_to_out(txn: Transaction) -> TransactionOut:
 
 @router.get("/pending", response_model=PendingListResponse)
 def list_pending(
+    user_id: str = Depends(get_user_id),
     conn: sqlite3.Connection = Depends(get_db),
 ) -> PendingListResponse:
-    """Return all transactions awaiting human review."""
-    txns = get_pending_transactions(conn)
+    """Return all transactions awaiting human review for the current user."""
+    txns = get_pending_transactions(conn, user_id)
     return PendingListResponse(
         count=len(txns),
         transactions=[_txn_to_out(t) for t in txns],
@@ -123,6 +122,7 @@ def list_pending(
 def approve(
     txn_id: int,
     body: ApproveRequest,
+    user_id: str = Depends(get_user_id),
     conn: sqlite3.Connection = Depends(get_db),
     rules: RulesManager = Depends(get_rules_manager),
     wiki: WikiManager = Depends(get_wiki_manager),
@@ -132,6 +132,9 @@ def approve(
     Saves the correction to the DB, records the pattern in finance_rules.md,
     and regenerates the current month wiki.
     """
+    _VALID_TYPES = {"expense", "investment", "loan_repayment", "credit", "others"}
+    _VALID_BUCKETS = {"fundamentals", "fun", "future_you", "unknown"}
+
     if body.transaction_type not in _VALID_TYPES:
         raise HTTPException(
             status_code=400,
@@ -143,11 +146,11 @@ def approve(
             detail=f"Invalid bucket. Must be one of: {sorted(_VALID_BUCKETS)}",
         )
 
-    txn = get_transaction_by_id(conn, txn_id)
+    txn = get_transaction_by_id(conn, user_id, txn_id)
     if txn is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
-    approve_transaction(conn, txn_id, body.transaction_type, body.bucket, body.category)
+    approve_transaction(conn, user_id, txn_id, body.transaction_type, body.bucket, body.category)
 
     rule_written = False
     if txn.merchant:
@@ -161,7 +164,7 @@ def approve(
         )
         rule_written = True
 
-    wiki.refresh_current_month(conn)
+    wiki.refresh_current_month(conn, user_id)
 
     return ApproveResponse(
         id=txn_id,
@@ -169,3 +172,4 @@ def approve(
         rule_written=rule_written,
         merchant=txn.merchant,
     )
+
