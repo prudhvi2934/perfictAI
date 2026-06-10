@@ -3,10 +3,17 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent.parent / "data" / "finance.db"
 
+_CREATE_USERS = """
+CREATE TABLE IF NOT EXISTS users (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    name       TEXT    NOT NULL UNIQUE
+);
+"""
+
 _CREATE_TRANSACTIONS = """
 CREATE TABLE IF NOT EXISTS transactions (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id           TEXT    NOT NULL,
+    user_id           INTEGER NOT NULL REFERENCES users(id),
     email_message_id  TEXT    NOT NULL,
     amount            REAL    NOT NULL,
     merchant          TEXT,
@@ -26,9 +33,9 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 _CREATE_PROCESSED_EMAILS = """
 CREATE TABLE IF NOT EXISTS processed_emails (
-    user_id      TEXT NOT NULL,
-    message_id   TEXT NOT NULL,
-    processed_at TEXT NOT NULL DEFAULT (datetime('now')),
+    user_id      INTEGER NOT NULL REFERENCES users(id),
+    message_id   TEXT    NOT NULL,
+    processed_at TEXT    NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (user_id, message_id)
 );
 """
@@ -45,40 +52,19 @@ def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
 
 def init_db(db_path: Path = DB_PATH) -> None:
     with get_connection(db_path) as conn:
+        conn.execute(_CREATE_USERS)
         conn.execute(_CREATE_TRANSACTIONS)
         conn.execute(_CREATE_PROCESSED_EMAILS)
         conn.commit()
 
 
 def migrate_db(db_path: Path = DB_PATH) -> None:
-    """Add review_status and user_id columns if they don't already exist.
+    """Ensure the users table exists and columns are up to date.
 
-    Safe to call on both fresh and existing databases — runs as a no-op when
-    the columns are already present.
+    Safe to call on both fresh and existing databases.
     """
     with get_connection(db_path) as conn:
-        cols = {row["name"] for row in conn.execute("PRAGMA table_info(transactions)")}
-
-        if "review_status" not in cols:
-            conn.execute(
-                "ALTER TABLE transactions "
-                "ADD COLUMN review_status TEXT NOT NULL DEFAULT 'approved'"
-            )
-            conn.commit()
-
-        if "user_id" not in cols:
-            conn.execute(
-                "ALTER TABLE transactions "
-                "ADD COLUMN user_id TEXT NOT NULL DEFAULT 'default_user'"
-            )
-            conn.commit()
-
-        processed_cols = {row["name"] for row in conn.execute("PRAGMA table_info(processed_emails)")}
-        if "user_id" not in processed_cols:
-            conn.execute(
-                "ALTER TABLE processed_emails "
-                "ADD COLUMN user_id TEXT NOT NULL DEFAULT 'default_user'"
-            )
-            conn.commit()
+        conn.execute(_CREATE_USERS)
+        conn.commit()
 
 

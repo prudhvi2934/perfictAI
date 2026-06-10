@@ -1,1 +1,21 @@
-/* App.css intentionally empty — all styles live in ReviewPage.css and TransactionCard.css */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.app-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.no-user-msg {
+  text-align: center;
+  margin-top: 64px;
+  color: #6b7280;
+  font-size: 15px;
+}

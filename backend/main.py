@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from db.schema import init_db, migrate_db
 from routers.transactions import router as transactions_router
+from routers.users import router as users_router
 from routers.wiki import router as wiki_router
 
 logging.basicConfig(
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="PerfictAI", version="0.1.0")
 
 app.include_router(transactions_router)
+app.include_router(users_router)
 app.include_router(wiki_router)
 
 

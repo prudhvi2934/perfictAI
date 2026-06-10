@@ -18,7 +18,7 @@ import './TransactionCard.css'
 const TYPES = ['expense', 'investment', 'loan_repayment', 'credit', 'others']
 const BUCKETS = ['fundamentals', 'fun', 'future_you', 'unknown']
 
-export default function TransactionCard({ txn, onApprove }) {
+export default function TransactionCard({ txn, onApprove, userId }) {
   const [type, setType]     = useState(txn.transaction_type || 'others')
   const [bucket, setBucket] = useState(txn.bucket || 'unknown')
   const [saving, setSaving] = useState(false)
@@ -28,7 +28,7 @@ export default function TransactionCard({ txn, onApprove }) {
     setSaving(true)
     setErr(null)
     try {
-      const res = await fetch(`/api/transactions/${txn.id}/approve`, {
+      const res = await fetch(`/api/transactions/${txn.id}/approve?user_id=${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transaction_type: type, bucket }),

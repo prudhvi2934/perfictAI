@@ -4,9 +4,39 @@ from typing import Optional
 
 
 @dataclass
+class User:
+    id: int
+    name: str
+
+
+def create_user(conn: sqlite3.Connection, name: str) -> User:
+    cursor = conn.execute(
+        "INSERT INTO users (name) VALUES (?)",
+        (name,),
+    )
+    conn.commit()
+    return User(id=cursor.lastrowid, name=name)  # type: ignore[arg-type]
+
+
+def get_user_by_id(conn: sqlite3.Connection, user_id: int) -> Optional[User]:
+    row = conn.execute("SELECT id, name FROM users WHERE id = ?", (user_id,)).fetchone()
+    return User(id=row["id"], name=row["name"]) if row else None
+
+
+def get_user_by_name(conn: sqlite3.Connection, name: str) -> Optional[User]:
+    row = conn.execute("SELECT id, name FROM users WHERE name = ?", (name,)).fetchone()
+    return User(id=row["id"], name=row["name"]) if row else None
+
+
+def get_all_users(conn: sqlite3.Connection) -> list[User]:
+    rows = conn.execute("SELECT id, name FROM users ORDER BY name").fetchall()
+    return [User(id=row["id"], name=row["name"]) for row in rows]
+
+
+@dataclass
 class Transaction:
     id: int
-    user_id: str
+    user_id: int
     email_message_id: str
     amount: float
     merchant: Optional[str]
@@ -21,7 +51,7 @@ class Transaction:
 
 @dataclass
 class NewTransaction:
-    user_id: str
+    user_id: int
     email_message_id: str
     amount: float
     date: str
@@ -75,7 +105,7 @@ def insert_transaction(conn: sqlite3.Connection, txn: NewTransaction) -> int:
     return cursor.lastrowid  # type: ignore[return-value]
 
 
-def get_all_transactions(conn: sqlite3.Connection, user_id: str) -> list[Transaction]:
+def get_all_transactions(conn: sqlite3.Connection, user_id: int) -> list[Transaction]:
     rows = conn.execute(
         "SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC",
         (user_id,),
@@ -84,7 +114,7 @@ def get_all_transactions(conn: sqlite3.Connection, user_id: str) -> list[Transac
 
 
 def get_transactions_by_type(
-    conn: sqlite3.Connection, user_id: str, transaction_type: str
+    conn: sqlite3.Connection, user_id: int, transaction_type: str
 ) -> list[Transaction]:
     rows = conn.execute(
         "SELECT * FROM transactions WHERE user_id = ? AND transaction_type = ? ORDER BY date DESC",
@@ -94,7 +124,7 @@ def get_transactions_by_type(
 
 
 def get_transactions_by_date_range(
-    conn: sqlite3.Connection, user_id: str, start_date: str, end_date: str
+    conn: sqlite3.Connection, user_id: int, start_date: str, end_date: str
 ) -> list[Transaction]:
     rows = conn.execute(
         "SELECT * FROM transactions WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC",
@@ -104,7 +134,7 @@ def get_transactions_by_date_range(
 
 
 def get_monthly_totals_by_type(
-    conn: sqlite3.Connection, user_id: str, year: int, month: int
+    conn: sqlite3.Connection, user_id: int, year: int, month: int
 ) -> dict[str, float]:
     month_prefix = f"{year:04d}-{month:02d}-%"
     rows = conn.execute(
@@ -120,7 +150,7 @@ def get_monthly_totals_by_type(
 
 
 def get_transaction_by_id(
-    conn: sqlite3.Connection, user_id: str, txn_id: int
+    conn: sqlite3.Connection, user_id: int, txn_id: int
 ) -> Optional[Transaction]:
     row = conn.execute(
         "SELECT * FROM transactions WHERE user_id = ? AND id = ?",
@@ -129,7 +159,7 @@ def get_transaction_by_id(
     return _row_to_transaction(row) if row else None
 
 
-def get_pending_transactions(conn: sqlite3.Connection, user_id: str) -> list[Transaction]:
+def get_pending_transactions(conn: sqlite3.Connection, user_id: int) -> list[Transaction]:
     rows = conn.execute(
         "SELECT * FROM transactions WHERE user_id = ? AND review_status = 'pending_review' ORDER BY created_at DESC",
         (user_id,),
@@ -139,7 +169,7 @@ def get_pending_transactions(conn: sqlite3.Connection, user_id: str) -> list[Tra
 
 def approve_transaction(
     conn: sqlite3.Connection,
-    user_id: str,
+    user_id: int,
     txn_id: int,
     transaction_type: str,
     bucket: str,
@@ -165,7 +195,7 @@ def approve_transaction(
 
 
 def get_approved_transactions_for_month(
-    conn: sqlite3.Connection, user_id: str, year: int, month: int
+    conn: sqlite3.Connection, user_id: int, year: int, month: int
 ) -> list[Transaction]:
     month_str = f"{year:04d}-{month:02d}"
     rows = conn.execute(
@@ -181,7 +211,7 @@ def get_approved_transactions_for_month(
     return [_row_to_transaction(r) for r in rows]
 
 
-def is_email_processed(conn: sqlite3.Connection, user_id: str, message_id: str) -> bool:
+def is_email_processed(conn: sqlite3.Connection, user_id: int, message_id: str) -> bool:
     row = conn.execute(
         "SELECT 1 FROM processed_emails WHERE user_id = ? AND message_id = ?",
         (user_id, message_id),
@@ -189,7 +219,7 @@ def is_email_processed(conn: sqlite3.Connection, user_id: str, message_id: str) 
     return row is not None
 
 
-def mark_email_processed(conn: sqlite3.Connection, user_id: str, message_id: str) -> None:
+def mark_email_processed(conn: sqlite3.Connection, user_id: int, message_id: str) -> None:
     conn.execute(
         "INSERT OR IGNORE INTO processed_emails (user_id, message_id) VALUES (?, ?)",
         (user_id, message_id),

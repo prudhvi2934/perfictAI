@@ -12,20 +12,16 @@ import { useState, useEffect } from 'react'
 import TransactionCard from './TransactionCard'
 import './ReviewPage.css'
 
-export default function ReviewPage() {
-  // `transactions` holds the list we get back from the backend.
-  // It starts as an empty array so the page renders without crashing before data arrives.
+export default function ReviewPage({ userId }) {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // fetchPending asks the backend for all transactions that need review.
-  // We define it outside useEffect so we can call it again after an approve action.
   async function fetchPending() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/transactions/pending')
+      const res = await fetch(`/api/transactions/pending?user_id=${userId}`)
       if (!res.ok) throw new Error(`Server error: ${res.status}`)
       const data = await res.json()
       setTransactions(data.transactions)
@@ -36,10 +32,9 @@ export default function ReviewPage() {
     }
   }
 
-  // useEffect with [] runs fetchPending exactly once — when the page first mounts.
   useEffect(() => {
     fetchPending()
-  }, [])
+  }, [userId])
 
   // onApprove is called by a TransactionCard when the user clicks Approve.
   // We remove that card from local state immediately (optimistic UI) so the page
@@ -64,7 +59,7 @@ export default function ReviewPage() {
         <div className="card-list">
           {transactions.map(txn => (
             // Each card gets the transaction object and a callback for when it's approved.
-            <TransactionCard key={txn.id} txn={txn} onApprove={onApprove} />
+            <TransactionCard key={txn.id} txn={txn} onApprove={onApprove} userId={userId} />
           ))}
         </div>
       )}

@@ -106,7 +106,7 @@ class WikiManager:
         current_path.parent.mkdir(parents=True, exist_ok=True)
         archive_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def refresh_current_month(self, conn: sqlite3.Connection, user_id: str) -> None:
+    def refresh_current_month(self, conn: sqlite3.Connection, user_id: int) -> None:
         """Regenerate finance_current_month.md from approved DB transactions.
 
         If the stored file belongs to a previous month, rolls it up to the
@@ -132,7 +132,7 @@ class WikiManager:
         self._current_path.write_text(content, encoding="utf-8")
         logger.info("Wiki: regenerated current month for %s.", month_label)
 
-    def _maybe_rollup(self, conn: sqlite3.Connection, user_id: str, current_year: int, current_month: int) -> None:
+    def _maybe_rollup(self, conn: sqlite3.Connection, user_id: int, current_year: int, current_month: int) -> None:
         """If finance_current_month.md belongs to a past month, roll it up to archive."""
         if not self._current_path.exists():
             return

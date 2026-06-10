@@ -1,0 +1,170 @@
+[
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: Credit Card Transaction Alert",
+    "body": "Dear Customer,\n\nINR 850.00 has been debited from your HDFC Bank Credit Card ending 4521 for a transaction at ZOMATO on 02-Apr-2026 at 13:24 IST.\nAvailable credit limit: INR 98,500.00\n\nIf not done by you, call 1800-202-6161.",
+    "date": "2026-04-02T13:24:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: UPI Transaction Alert",
+    "body": "Dear Customer,\n\nINR 2,200.00 has been debited from your HDFC Bank Account ending 7893 via UPI to RAPIDO on 03-Apr-2026 at 09:15 IST.\nAvailable balance: INR 54,320.00\n\nTransaction ref: UPI/260403/12345678.",
+    "date": "2026-04-03T09:15:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 499.00 on 04-Apr-2026 for NETFLIX SUBSCRIPTION. Avl Bal: INR 28,410.00. If not done by you, report at icicibank.com/reportunauthorised.",
+    "date": "2026-04-04T00:01:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.1,200.00 debited from Axis Bank A/c XX2341 on 05-Apr-2026 at BIG BAZAAR - GROCERY. Avl Bal Rs.41,800.00. SMS BLOCK to 5676782 to block card.",
+    "date": "2026-04-05T11:40:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: NACH/Auto-debit Alert",
+    "body": "Dear Customer,\n\nINR 5,000.00 has been debited from your HDFC Bank Account ending 7893 via NACH mandate for SBI MUTUAL FUND - SIP on 07-Apr-2026.\nAvailable balance: INR 49,320.00\n\nThis is an auto-debit for your SIP investment.",
+    "date": "2026-04-07T08:00:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: EMI Debit Alert",
+    "body": "Dear Customer,\n\nINR 12,450.00 has been debited from your HDFC Bank Account ending 7893 as EMI for HOME LOAN A/C ending 3301 on 07-Apr-2026.\nPrincipal: INR 5,820.00 | Interest: INR 6,630.00\nOutstanding principal: INR 18,24,500.00\nAvailable balance: INR 36,870.00",
+    "date": "2026-04-07T08:10:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 3,500.00 on 09-Apr-2026 for RELIANCE DIGITAL - ELECTRONICS. Avl Bal: INR 24,910.00.",
+    "date": "2026-04-09T16:22:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.650.00 debited from Axis Bank A/c XX2341 on 10-Apr-2026 at UBER. Avl Bal Rs.41,150.00.",
+    "date": "2026-04-10T08:45:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: Credit Card Transaction Alert",
+    "body": "Dear Customer,\n\nINR 1,640.00 has been debited from your HDFC Bank Credit Card ending 4521 for a transaction at SWIGGY on 12-Apr-2026 at 20:11 IST.\nAvailable credit limit: INR 96,860.00",
+    "date": "2026-04-12T20:11:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: UPI Transaction Alert",
+    "body": "Dear Customer,\n\nINR 999.00 has been debited from your HDFC Bank Account ending 7893 via UPI to AMAZON PRIME VIDEO on 13-Apr-2026 at 10:00 IST.\nAvailable balance: INR 35,871.00",
+    "date": "2026-04-13T10:00:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 2,800.00 on 14-Apr-2026 for ELECTRICITY BOARD - BESCOM. Avl Bal: INR 22,110.00.",
+    "date": "2026-04-14T12:00:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.4,200.00 debited from Axis Bank A/c XX2341 on 15-Apr-2026 at APOLLO PHARMACY. Avl Bal Rs.36,950.00.",
+    "date": "2026-04-15T14:30:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: NACH/Auto-debit Alert",
+    "body": "Dear Customer,\n\nINR 2,000.00 has been debited from your HDFC Bank Account ending 7893 via NACH mandate for RECURRING DEPOSIT - HDFC BANK on 15-Apr-2026.\nAvailable balance: INR 33,871.00",
+    "date": "2026-04-15T08:05:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: Credit Card Transaction Alert",
+    "body": "Dear Customer,\n\nINR 520.00 has been debited from your HDFC Bank Credit Card ending 4521 for a transaction at INOX MOVIES on 17-Apr-2026 at 19:30 IST.\nAvailable credit limit: INR 96,340.00",
+    "date": "2026-04-17T19:30:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 780.00 on 20-Apr-2026 for AIRTEL POSTPAID BILL. Avl Bal: INR 21,330.00.",
+    "date": "2026-04-20T10:00:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.6,500.00 debited from Axis Bank A/c XX2341 on 22-Apr-2026 at MYNTRA - FASHION SHOPPING. Avl Bal Rs.30,450.00.",
+    "date": "2026-04-22T15:00:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: UPI Transaction Alert",
+    "body": "Dear Customer,\n\nINR 1,100.00 has been debited from your HDFC Bank Account ending 7893 via UPI to ZEPTO GROCERY on 24-Apr-2026 at 18:45 IST.\nAvailable balance: INR 32,771.00",
+    "date": "2026-04-24T18:45:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: EMI Debit Alert",
+    "body": "Dear Customer,\n\nINR 3,200.00 has been debited from your HDFC Bank Account ending 7893 as EMI for PERSONAL LOAN A/C ending 8812 on 25-Apr-2026.\nOutstanding principal: INR 78,400.00\nAvailable balance: INR 29,571.00",
+    "date": "2026-04-25T08:10:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: Credit Card Transaction Alert",
+    "body": "Dear Customer,\n\nINR 2,350.00 has been debited from your HDFC Bank Credit Card ending 4521 for a transaction at BARBEQUE NATION on 27-Apr-2026 at 21:00 IST.\nAvailable credit limit: INR 93,990.00",
+    "date": "2026-04-27T21:00:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 1,299.00 on 28-Apr-2026 for CULT FIT - GYM MEMBERSHIP. Avl Bal: INR 20,031.00.",
+    "date": "2026-04-28T09:00:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: Credit Card Transaction Alert",
+    "body": "Dear Customer,\n\nINR 960.00 has been debited from your HDFC Bank Credit Card ending 4521 for a transaction at ZOMATO on 01-May-2026 at 13:10 IST.\nAvailable credit limit: INR 93,030.00",
+    "date": "2026-05-01T13:10:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: NACH/Auto-debit Alert",
+    "body": "Dear Customer,\n\nINR 5,000.00 has been debited from your HDFC Bank Account ending 7893 via NACH mandate for SBI MUTUAL FUND - SIP on 07-May-2026.\nAvailable balance: INR 42,100.00",
+    "date": "2026-05-07T08:00:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: EMI Debit Alert",
+    "body": "Dear Customer,\n\nINR 12,450.00 has been debited from your HDFC Bank Account ending 7893 as EMI for HOME LOAN A/C ending 3301 on 07-May-2026.\nPrincipal: INR 5,840.00 | Interest: INR 6,610.00\nOutstanding principal: INR 18,18,660.00\nAvailable balance: INR 29,650.00",
+    "date": "2026-05-07T08:10:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.3,800.00 debited from Axis Bank A/c XX2341 on 08-May-2026 at D-MART GROCERY. Avl Bal Rs.27,200.00.",
+    "date": "2026-05-08T10:20:00"
+  },
+  {
+    "sender": "notify@icicibank.com",
+    "subject": "ICICI Bank Txn Alert - A/c XX7654",
+    "body": "ICICI Bank Account XX7654 debited with INR 499.00 on 08-May-2026 for NETFLIX SUBSCRIPTION. Avl Bal: INR 19,532.00.",
+    "date": "2026-05-08T00:01:00"
+  },
+  {
+    "sender": "alerts@axisbank.com",
+    "subject": "Axis Bank Debit Alert",
+    "body": "Rs.820.00 debited from Axis Bank A/c XX2341 on 09-May-2026 at OLA CABS. Avl Bal Rs.26,380.00.",
+    "date": "2026-05-09T09:00:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: NACH/Auto-debit Alert",
+    "body": "Dear Customer,\n\nINR 2,000.00 has been debited from your HDFC Bank Account ending 7893 via NACH mandate for RECURRING DEPOSIT - HDFC BANK on 15-May-2026.\nAvailable balance: INR 27,650.00",
+    "date": "2026-05-15T08:05:00"
+  },
+  {
+    "sender": "alerts@hdfcbank.com",
+    "subject": "HDFC Bank: EMI Debit Alert",
+    "body": "Dear Customer,\n\nINR 3,200.00 has been debited from your HDFC Bank Account ending 7893 as EMI for PERSONAL LOAN A/C ending 8812 on 25-May-2026.\nOutstanding principal: INR 75,200.00\nAvailable balance: INR 24,450.00",
+    "date": "2026-05-25T08:10:00"
+  }
+]

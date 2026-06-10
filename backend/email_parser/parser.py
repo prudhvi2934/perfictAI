@@ -231,7 +231,11 @@ class EmailParser:
             bucket=data.get("bucket", "unknown"),
         )
 
+        # All LLM-parsed transactions require human review by default
+        txn.review_status = "pending_review"
+
         # Apply rule override — human-confirmed rules take precedence over LLM
+        # and can bypass review since the pattern was already approved by a human
         if self._rules is not None:
             rule = self._rules.match(txn.merchant)
             if rule:
@@ -245,13 +249,7 @@ class EmailParser:
                 txn.bucket = rule.bucket
                 if rule.category:
                     txn.category = rule.category
-
-        # Flag for human review when classification is uncertain
-        txn.review_status = (
-            "pending_review"
-            if txn.transaction_type == "others" or txn.bucket in (None, "unknown")
-            else "approved"
-        )
+                txn.review_status = "approved"
 
         return txn
 

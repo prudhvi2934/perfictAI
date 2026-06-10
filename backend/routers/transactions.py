@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from db.queries import (
     Transaction,
+    User,
     approve_transaction,
     get_pending_transactions,
     get_transaction_by_id,
@@ -15,7 +16,7 @@ from db.schema import get_connection
 from wiki.rules_manager import FinanceRule, RulesManager
 from wiki.wiki_manager import WikiManager
 from llm.client import LLMClient
-from routers.dependencies import get_user_id
+from routers.dependencies import get_user
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -72,15 +73,15 @@ def get_db() -> Generator[sqlite3.Connection, None, None]:
         conn.close()
 
 
-def get_rules_manager(user_id: str = Depends(get_user_id)) -> RulesManager:
-    rules_path = _DATA_DIR / user_id / "finance_rules.md"
+def get_rules_manager(user: User = Depends(get_user)) -> RulesManager:
+    rules_path = _DATA_DIR / user.name / "finance_rules.md"
     return RulesManager(rules_path)
 
 
-def get_wiki_manager(user_id: str = Depends(get_user_id)) -> WikiManager:
+def get_wiki_manager(user: User = Depends(get_user)) -> WikiManager:
     llm = LLMClient()
-    current_path = _DATA_DIR / user_id / "finance_current_month.md"
-    archive_path = _DATA_DIR / user_id / "finance_archive.md"
+    current_path = _DATA_DIR / user.name / "finance_current_month.md"
+    archive_path = _DATA_DIR / user.name / "finance_archive.md"
     return WikiManager(llm, current_path, archive_path)
 
 
@@ -107,11 +108,11 @@ def _txn_to_out(txn: Transaction) -> TransactionOut:
 
 @router.get("/pending", response_model=PendingListResponse)
 def list_pending(
-    user_id: str = Depends(get_user_id),
+    user: User = Depends(get_user),
     conn: sqlite3.Connection = Depends(get_db),
 ) -> PendingListResponse:
     """Return all transactions awaiting human review for the current user."""
-    txns = get_pending_transactions(conn, user_id)
+    txns = get_pending_transactions(conn, user.id)
     return PendingListResponse(
         count=len(txns),
         transactions=[_txn_to_out(t) for t in txns],
@@ -122,7 +123,7 @@ def list_pending(
 def approve(
     txn_id: int,
     body: ApproveRequest,
-    user_id: str = Depends(get_user_id),
+    user: User = Depends(get_user),
     conn: sqlite3.Connection = Depends(get_db),
     rules: RulesManager = Depends(get_rules_manager),
     wiki: WikiManager = Depends(get_wiki_manager),
@@ -146,11 +147,11 @@ def approve(
             detail=f"Invalid bucket. Must be one of: {sorted(_VALID_BUCKETS)}",
         )
 
-    txn = get_transaction_by_id(conn, user_id, txn_id)
+    txn = get_transaction_by_id(conn, user.id, txn_id)
     if txn is None:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
-    approve_transaction(conn, user_id, txn_id, body.transaction_type, body.bucket, body.category)
+    approve_transaction(conn, user.id, txn_id, body.transaction_type, body.bucket, body.category)
 
     rule_written = False
     if txn.merchant:
@@ -164,7 +165,7 @@ def approve(
         )
         rule_written = True
 
-    wiki.refresh_current_month(conn, user_id)
+    wiki.refresh_current_month(conn, user.id)
 
     return ApproveResponse(
         id=txn_id,
