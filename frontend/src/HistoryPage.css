@@ -1,0 +1,100 @@
+/* Monthly summary cards */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.month-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.month-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.month-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #6b7280;
+  padding: 2px 0;
+}
+
+.month-net {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 6px;
+  padding-top: 6px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.amount-credit {
+  color: #047857;
+}
+
+.amount-debit {
+  color: #b91c1c;
+}
+
+/* Reviewed-transactions table */
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 14px;
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.history-table th {
+  background: #f9fafb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.col-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Small labels for type and bucket values */
+.pill {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.pill-type {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.pill-bucket {
+  background: #fef3c7;
+  color: #92400e;
+}

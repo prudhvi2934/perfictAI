@@ -13,6 +13,32 @@
   color: #111827;
 }
 
+.app-nav {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #6b7280;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: #f3f4f6;
+}
+
+.nav-btn.active {
+  background: #e0e7ff;
+  color: #3730a3;
+  font-weight: 600;
+}
+
 .no-user-msg {
   text-align: center;
   margin-top: 64px;

@@ -1,11 +1,10 @@
 import sqlite3
-from typing import Generator
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from db.queries import get_all_users
-from db.schema import get_connection
+from routers.dependencies import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -13,14 +12,6 @@ router = APIRouter(prefix="/users", tags=["users"])
 class UserOut(BaseModel):
     id: int
     name: str
-
-
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    conn = get_connection()
-    try:
-        yield conn
-    finally:
-        conn.close()
 
 
 @router.get("", response_model=list[UserOut])

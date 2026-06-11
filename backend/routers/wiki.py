@@ -1,26 +1,16 @@
 import sqlite3
 from pathlib import Path
-from typing import Generator
 
 from fastapi import APIRouter, Depends
 
 from db.queries import User
-from db.schema import get_connection
 from llm.client import LLMClient
 from wiki.wiki_manager import WikiManager
-from routers.dependencies import get_user
+from routers.dependencies import get_db, get_user
 
 router = APIRouter(prefix="/wiki", tags=["wiki"])
 
 _DATA_DIR = Path(__file__).parent.parent.parent / "data"
-
-
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    conn = get_connection()
-    try:
-        yield conn
-    finally:
-        conn.close()
 
 
 def get_wiki_manager(user: User = Depends(get_user)) -> WikiManager:

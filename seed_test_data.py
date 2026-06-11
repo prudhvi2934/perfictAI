@@ -7,6 +7,7 @@ Usage:
 import json
 import logging
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "backend"))
@@ -42,6 +43,7 @@ def main() -> None:
 
         try:
             parsed = parser.parse(message_id, subject, body, email_header_date=date)
+            time.sleep(4)  # stay under 15 req/min free-tier limit
         except Exception as exc:
             logger.error("[FAIL] seed-%04d — LLM error: %s", idx, exc)
             failed += 1

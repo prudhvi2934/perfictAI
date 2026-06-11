@@ -194,6 +194,58 @@ def approve_transaction(
     return cursor.rowcount > 0
 
 
+def get_reviewed_transactions(conn: sqlite3.Connection, user_id: int) -> list[Transaction]:
+    rows = conn.execute(
+        "SELECT * FROM transactions WHERE user_id = ? AND review_status = 'approved' ORDER BY date DESC, id DESC",
+        (user_id,),
+    ).fetchall()
+    return [_row_to_transaction(r) for r in rows]
+
+
+@dataclass
+class MonthlySummary:
+    month: str  # "YYYY-MM"
+    credit: float
+    debit: float
+    net: float
+    by_type: dict[str, float]
+
+
+def get_monthly_summaries(conn: sqlite3.Connection, user_id: int) -> list[MonthlySummary]:
+    """Per-month credit/debit totals across all approved transactions.
+
+    Credit is the `credit` transaction_type; debit is everything else
+    (expense, investment, loan_repayment, others — all money going out).
+    """
+    rows = conn.execute(
+        """
+        SELECT strftime('%Y-%m', date) AS month,
+               transaction_type,
+               SUM(amount) AS total
+        FROM transactions
+        WHERE user_id = ? AND review_status = 'approved'
+        GROUP BY month, transaction_type
+        ORDER BY month DESC
+        """,
+        (user_id,),
+    ).fetchall()
+
+    summaries: dict[str, MonthlySummary] = {}
+    for r in rows:
+        summary = summaries.setdefault(
+            r["month"],
+            MonthlySummary(month=r["month"], credit=0.0, debit=0.0, net=0.0, by_type={}),
+        )
+        summary.by_type[r["transaction_type"]] = r["total"]
+        if r["transaction_type"] == "credit":
+            summary.credit += r["total"]
+        else:
+            summary.debit += r["total"]
+    for summary in summaries.values():
+        summary.net = summary.credit - summary.debit
+    return list(summaries.values())
+
+
 def get_approved_transactions_for_month(
     conn: sqlite3.Connection, user_id: int, year: int, month: int
 ) -> list[Transaction]:

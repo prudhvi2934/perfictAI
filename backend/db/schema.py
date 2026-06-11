@@ -43,7 +43,10 @@ CREATE TABLE IF NOT EXISTS processed_emails (
 
 def get_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+    # check_same_thread=False: FastAPI may create the connection (dependency)
+    # and use it (endpoint) on different threadpool threads. Each request gets
+    # its own connection and uses it sequentially, so this is safe.
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")

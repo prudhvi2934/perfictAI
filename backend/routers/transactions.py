@@ -1,6 +1,6 @@
 import sqlite3
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -9,14 +9,13 @@ from db.queries import (
     Transaction,
     User,
     approve_transaction,
+    get_monthly_summaries,
     get_pending_transactions,
+    get_reviewed_transactions,
     get_transaction_by_id,
 )
-from db.schema import get_connection
 from wiki.rules_manager import FinanceRule, RulesManager
-from wiki.wiki_manager import WikiManager
-from llm.client import LLMClient
-from routers.dependencies import get_user
+from routers.dependencies import get_db, get_user
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
 
@@ -53,6 +52,23 @@ class PendingListResponse(BaseModel):
     transactions: list[TransactionOut]
 
 
+class HistoryListResponse(BaseModel):
+    count: int
+    transactions: list[TransactionOut]
+
+
+class MonthlySummaryOut(BaseModel):
+    month: str
+    credit: float
+    debit: float
+    net: float
+    by_type: dict[str, float]
+
+
+class MonthlySummaryResponse(BaseModel):
+    months: list[MonthlySummaryOut]
+
+
 class ApproveResponse(BaseModel):
     id: int
     review_status: str
@@ -65,24 +81,9 @@ class ApproveResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def get_db() -> Generator[sqlite3.Connection, None, None]:
-    conn = get_connection()
-    try:
-        yield conn
-    finally:
-        conn.close()
-
-
 def get_rules_manager(user: User = Depends(get_user)) -> RulesManager:
     rules_path = _DATA_DIR / user.name / "finance_rules.md"
     return RulesManager(rules_path)
-
-
-def get_wiki_manager(user: User = Depends(get_user)) -> WikiManager:
-    llm = LLMClient()
-    current_path = _DATA_DIR / user.name / "finance_current_month.md"
-    archive_path = _DATA_DIR / user.name / "finance_archive.md"
-    return WikiManager(llm, current_path, archive_path)
 
 
 def _txn_to_out(txn: Transaction) -> TransactionOut:
@@ -119,6 +120,40 @@ def list_pending(
     )
 
 
+@router.get("/history", response_model=HistoryListResponse)
+def list_history(
+    user: User = Depends(get_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> HistoryListResponse:
+    """Return all reviewed (approved) transactions for the current user, newest first."""
+    txns = get_reviewed_transactions(conn, user.id)
+    return HistoryListResponse(
+        count=len(txns),
+        transactions=[_txn_to_out(t) for t in txns],
+    )
+
+
+@router.get("/summary/monthly", response_model=MonthlySummaryResponse)
+def monthly_summary(
+    user: User = Depends(get_user),
+    conn: sqlite3.Connection = Depends(get_db),
+) -> MonthlySummaryResponse:
+    """Per-month credit/debit/net totals over reviewed transactions, newest month first."""
+    summaries = get_monthly_summaries(conn, user.id)
+    return MonthlySummaryResponse(
+        months=[
+            MonthlySummaryOut(
+                month=s.month,
+                credit=s.credit,
+                debit=s.debit,
+                net=s.net,
+                by_type=s.by_type,
+            )
+            for s in summaries
+        ]
+    )
+
+
 @router.post("/{txn_id}/approve", response_model=ApproveResponse)
 def approve(
     txn_id: int,
@@ -126,12 +161,12 @@ def approve(
     user: User = Depends(get_user),
     conn: sqlite3.Connection = Depends(get_db),
     rules: RulesManager = Depends(get_rules_manager),
-    wiki: WikiManager = Depends(get_wiki_manager),
 ) -> ApproveResponse:
     """Human confirms correct classification for a transaction.
 
-    Saves the correction to the DB, records the pattern in finance_rules.md,
-    and regenerates the current month wiki.
+    Saves the correction to the DB. Only writes a rule when the user changed
+    the LLM's original bucket or transaction_type — rules are corrections, not
+    confirmations.
     """
     _VALID_TYPES = {"expense", "investment", "loan_repayment", "credit", "others"}
     _VALID_BUCKETS = {"fundamentals", "fun", "future_you", "unknown"}
@@ -153,8 +188,12 @@ def approve(
 
     approve_transaction(conn, user.id, txn_id, body.transaction_type, body.bucket, body.category)
 
+    user_corrected = (
+        body.transaction_type != txn.transaction_type
+        or body.bucket != txn.bucket
+    )
     rule_written = False
-    if txn.merchant:
+    if txn.merchant and user_corrected:
         rules.upsert_rule(
             FinanceRule(
                 pattern=txn.merchant.lower(),
@@ -164,8 +203,6 @@ def approve(
             )
         )
         rule_written = True
-
-    wiki.refresh_current_month(conn, user.id)
 
     return ApproveResponse(
         id=txn_id,
