@@ -16,7 +16,7 @@ import { useState } from 'react'
 import './TransactionCard.css'
 
 const TYPES = ['expense', 'investment', 'loan_repayment', 'credit', 'others']
-const BUCKETS = ['fundamentals', 'fun', 'future_you', 'unknown']
+const BUCKETS = ['fundamentals', 'fun', 'future', 'unknown']
 
 export default function TransactionCard({ txn, onApprove, userId }) {
   const [type, setType]     = useState(txn.transaction_type || 'others')

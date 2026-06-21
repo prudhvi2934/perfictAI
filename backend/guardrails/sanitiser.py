@@ -80,6 +80,32 @@ _RULES: list[tuple[re.Pattern[str], str]] = [
 ]
 
 
+def sanitise_text(text: str) -> str:
+    """Strip PII from arbitrary text before sending it to an LLM.
+
+    Replaces account/card numbers, UPI IDs, phone numbers, email addresses and
+    customer-name salutations with labelled placeholders so the LLM keeps
+    grammatical context. Merchant names are intentionally preserved — see the
+    module docstring.
+
+    Raises:
+        ValueError: if the input is not a string.
+    """
+    if not isinstance(text, str):
+        raise ValueError(f"sanitise_text expects a str input, got {type(text)!r}")
+
+    sanitised = text
+    for pattern, replacement in _RULES:
+        sanitised = pattern.sub(replacement, sanitised)
+
+    if sanitised != text:
+        logger.debug("sanitise_text: PII redacted before LLM call")
+    else:
+        logger.debug("sanitise_text: no PII patterns matched")
+
+    return sanitised
+
+
 def sanitise_email(subject: str, body: str) -> str:
     """Strip PII from email subject and body before sending to an LLM.
 
@@ -95,15 +121,4 @@ def sanitise_email(subject: str, body: str) -> str:
             f"subject={type(subject)!r}, body={type(body)!r}"
         )
 
-    combined = f"Subject: {subject}\n\n{body}"
-    sanitised = combined
-
-    for pattern, replacement in _RULES:
-        sanitised = pattern.sub(replacement, sanitised)
-
-    if sanitised != combined:
-        logger.debug("sanitise_email: PII redacted before LLM call")
-    else:
-        logger.debug("sanitise_email: no PII patterns matched")
-
-    return sanitised
+    return sanitise_text(f"Subject: {subject}\n\n{body}")

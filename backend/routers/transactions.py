@@ -1,5 +1,4 @@
 import sqlite3
-from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -15,11 +14,9 @@ from db.queries import (
     get_transaction_by_id,
 )
 from wiki.rules_manager import FinanceRule, RulesManager
-from routers.dependencies import get_db, get_user
+from routers.dependencies import get_db, get_rules_manager, get_user
 
 router = APIRouter(prefix="/transactions", tags=["transactions"])
-
-_DATA_DIR = Path(__file__).parent.parent.parent / "data"
 
 
 # ---------------------------------------------------------------------------
@@ -79,11 +76,6 @@ class ApproveResponse(BaseModel):
 # ---------------------------------------------------------------------------
 # Dependencies
 # ---------------------------------------------------------------------------
-
-
-def get_rules_manager(user: User = Depends(get_user)) -> RulesManager:
-    rules_path = _DATA_DIR / user.name / "finance_rules.md"
-    return RulesManager(rules_path)
 
 
 def _txn_to_out(txn: Transaction) -> TransactionOut:
@@ -169,7 +161,7 @@ def approve(
     confirmations.
     """
     _VALID_TYPES = {"expense", "investment", "loan_repayment", "credit", "others"}
-    _VALID_BUCKETS = {"fundamentals", "fun", "future_you", "unknown"}
+    _VALID_BUCKETS = {"fundamentals", "fun", "future", "unknown"}
 
     if body.transaction_type not in _VALID_TYPES:
         raise HTTPException(

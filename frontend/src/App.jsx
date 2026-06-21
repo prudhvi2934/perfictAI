@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import ReviewPage from './ReviewPage'
 import HistoryPage from './HistoryPage'
+import UploadPage from './UploadPage'
 import UserPicker from './UserPicker'
 import './App.css'
 
@@ -13,7 +14,7 @@ function readStoredUserId() {
 
 export default function App() {
   const [userId, setUserId] = useState(readStoredUserId)
-  const [page, setPage] = useState('review') // 'review' | 'history'
+  const [page, setPage] = useState('history') // 'review' | 'history' | 'upload'
 
   function handleSelectUser(id) {
     localStorage.setItem(LS_KEY, String(id))
@@ -26,16 +27,22 @@ export default function App() {
         <strong className="app-title">PerfictAI</strong>
         <nav className="app-nav">
           <button
+            className={page === 'history' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setPage('history')}
+          >
+            History
+          </button>
+          <button
             className={page === 'review' ? 'nav-btn active' : 'nav-btn'}
             onClick={() => setPage('review')}
           >
             Review
           </button>
           <button
-            className={page === 'history' ? 'nav-btn active' : 'nav-btn'}
-            onClick={() => setPage('history')}
+            className={page === 'upload' ? 'nav-btn active' : 'nav-btn'}
+            onClick={() => setPage('upload')}
           >
-            History
+            Upload
           </button>
         </nav>
         <UserPicker selectedUserId={userId} onSelect={handleSelectUser} />
@@ -44,8 +51,10 @@ export default function App() {
         <p className="no-user-msg">Select a user above to get started.</p>
       ) : page === 'review' ? (
         <ReviewPage userId={userId} />
-      ) : (
+      ) : page === 'history' ? (
         <HistoryPage userId={userId} />
+      ) : (
+        <UploadPage userId={userId} />
       )}
     </>
   )

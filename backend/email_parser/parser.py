@@ -59,7 +59,7 @@ class ParsedTransaction:
     transaction_type: str   # expense | investment | loan_repayment | credit | others
     description: str        # raw email subject, kept for audit trail
     category: Optional[str] = None   # food, transport, shopping, …
-    bucket: Optional[str] = None     # fundamentals | fun | future_you | unknown
+    bucket: Optional[str] = None     # fundamentals | fun | future | unknown
     review_status: str = "approved"  # pending_review when LLM can't classify
 
 
@@ -81,7 +81,7 @@ _TRANSACTION_SCHEMA: dict[str, Any] = {
         "category": {"type": "string"},
         "bucket": {
             "type": "string",
-            "enum": ["fundamentals", "fun", "future_you", "unknown"],
+            "enum": ["fundamentals", "fun", "future", "unknown"],
         },
     },
     "required": ["is_transaction"],
@@ -106,7 +106,7 @@ Field definitions:
 - bucket:
     "fundamentals" — rent, EMI, utilities, insurance, essential transport
     "fun"          — dining, gym, entertainment, subscriptions, shopping
-    "future_you"   — SIP, FD, investments, savings transfers
+    "future"       — SIP, FD, investments, savings transfers
     "unknown"      — when you cannot determine the bucket
 
 Rules:

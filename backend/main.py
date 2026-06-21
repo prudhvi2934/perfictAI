@@ -1,11 +1,18 @@
 import logging
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI
 
 from db.schema import init_db, migrate_db
+from routers.statements import router as statements_router
 from routers.transactions import router as transactions_router
 from routers.users import router as users_router
 from routers.wiki import router as wiki_router
+
+# Load environment variables from the project-root .env so LLMClient can read
+# GEMINI_API_KEY. LLMClient is constructed per-request, well after this runs.
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,6 +25,7 @@ app = FastAPI(title="PerfictAI", version="0.1.0")
 app.include_router(transactions_router)
 app.include_router(users_router)
 app.include_router(wiki_router)
+app.include_router(statements_router)
 
 
 @app.on_event("startup")

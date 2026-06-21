@@ -34,6 +34,24 @@ def get_all_users(conn: sqlite3.Connection) -> list[User]:
 
 
 @dataclass
+class TransactionType:
+    """A granular, user-editable transaction category in the two-tier model.
+
+    A row with user_id=None is a system default shared across all users; a row
+    with a concrete user_id is that user's custom type (or override of a system
+    name). `kind` is the coarse class; `bucket` is the 50/30/20 bucket the type
+    rolls up to (None for income/transfer kinds, which sit outside spending).
+    """
+
+    id: int
+    user_id: Optional[int]
+    name: str
+    kind: str
+    bucket: Optional[str]
+    is_system_default: bool
+
+
+@dataclass
 class Transaction:
     id: int
     user_id: int
@@ -47,11 +65,16 @@ class Transaction:
     description: Optional[str]
     review_status: str
     created_at: str
+    source: str = "email"
+    direction: Optional[str] = None
+    type_id: Optional[int] = None
 
 
 @dataclass
 class NewTransaction:
     user_id: int
+    # Stable per-source dedup reference. For email ingestion this is the Gmail
+    # message id; for CSV ingestion it is a content hash of the statement row.
     email_message_id: str
     amount: float
     date: str
@@ -61,6 +84,9 @@ class NewTransaction:
     bucket: Optional[str] = None
     description: Optional[str] = None
     review_status: str = "approved"
+    source: str = "email"
+    direction: Optional[str] = None
+    type_id: Optional[int] = None
 
 
 def _row_to_transaction(row: sqlite3.Row) -> Transaction:
@@ -77,6 +103,9 @@ def _row_to_transaction(row: sqlite3.Row) -> Transaction:
         description=row["description"],
         review_status=row["review_status"],
         created_at=row["created_at"],
+        source=row["source"],
+        direction=row["direction"],
+        type_id=row["type_id"],
     )
 
 
@@ -85,8 +114,8 @@ def insert_transaction(conn: sqlite3.Connection, txn: NewTransaction) -> int:
         """
         INSERT INTO transactions
             (user_id, email_message_id, amount, merchant, date, transaction_type,
-             category, bucket, description, review_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             category, bucket, description, source, review_status, direction, type_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             txn.user_id,
@@ -98,11 +127,49 @@ def insert_transaction(conn: sqlite3.Connection, txn: NewTransaction) -> int:
             txn.category,
             txn.bucket,
             txn.description,
+            txn.source,
             txn.review_status,
+            txn.direction,
+            txn.type_id,
         ),
     )
     conn.commit()
     return cursor.lastrowid  # type: ignore[return-value]
+
+
+def insert_transaction_if_new(
+    conn: sqlite3.Connection, txn: NewTransaction
+) -> Optional[int]:
+    """Insert a transaction, skipping it if its dedup reference already exists.
+
+    Returns the new row id, or None when the (user_id, email_message_id) pair
+    already exists — i.e. the same source row was ingested before.
+    """
+    cursor = conn.execute(
+        """
+        INSERT OR IGNORE INTO transactions
+            (user_id, email_message_id, amount, merchant, date, transaction_type,
+             category, bucket, description, source, review_status, direction, type_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            txn.user_id,
+            txn.email_message_id,
+            txn.amount,
+            txn.merchant,
+            txn.date,
+            txn.transaction_type,
+            txn.category,
+            txn.bucket,
+            txn.description,
+            txn.source,
+            txn.review_status,
+            txn.direction,
+            txn.type_id,
+        ),
+    )
+    conn.commit()
+    return cursor.lastrowid if cursor.rowcount > 0 else None
 
 
 def get_all_transactions(conn: sqlite3.Connection, user_id: int) -> list[Transaction]:
@@ -277,3 +344,100 @@ def mark_email_processed(conn: sqlite3.Connection, user_id: int, message_id: str
         (user_id, message_id),
     )
     conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Transaction types (two-tier categorization)
+# ---------------------------------------------------------------------------
+
+
+def _row_to_transaction_type(row: sqlite3.Row) -> TransactionType:
+    return TransactionType(
+        id=row["id"],
+        user_id=row["user_id"],
+        name=row["name"],
+        kind=row["kind"],
+        bucket=row["bucket"],
+        is_system_default=bool(row["is_system_default"]),
+    )
+
+
+def list_transaction_types(
+    conn: sqlite3.Connection, user_id: int
+) -> list[TransactionType]:
+    """All types visible to a user: system defaults plus their own custom types."""
+    rows = conn.execute(
+        """
+        SELECT id, user_id, name, kind, bucket, is_system_default
+        FROM transaction_types
+        WHERE user_id IS NULL OR user_id = ?
+        ORDER BY name
+        """,
+        (user_id,),
+    ).fetchall()
+    return [_row_to_transaction_type(r) for r in rows]
+
+
+def get_transaction_type_by_name(
+    conn: sqlite3.Connection, user_id: int, name: str
+) -> Optional[TransactionType]:
+    """Resolve a type by name, preferring the user's own row over the system default.
+
+    `ORDER BY user_id IS NULL` sorts user rows (expression = 0) ahead of the
+    system default (expression = 1), so an override wins when both exist.
+    """
+    row = conn.execute(
+        """
+        SELECT id, user_id, name, kind, bucket, is_system_default
+        FROM transaction_types
+        WHERE name = ? AND (user_id IS NULL OR user_id = ?)
+        ORDER BY user_id IS NULL
+        LIMIT 1
+        """,
+        (name, user_id),
+    ).fetchone()
+    return _row_to_transaction_type(row) if row else None
+
+
+def get_transaction_type_by_id(
+    conn: sqlite3.Connection, type_id: int
+) -> Optional[TransactionType]:
+    row = conn.execute(
+        """
+        SELECT id, user_id, name, kind, bucket, is_system_default
+        FROM transaction_types
+        WHERE id = ?
+        """,
+        (type_id,),
+    ).fetchone()
+    return _row_to_transaction_type(row) if row else None
+
+
+def create_transaction_type(
+    conn: sqlite3.Connection,
+    user_id: int,
+    name: str,
+    kind: str,
+    bucket: Optional[str],
+) -> TransactionType:
+    """Create a user-owned transaction type.
+
+    Raises sqlite3.IntegrityError if the user already has a type with this name
+    (enforced by the unique index on (IFNULL(user_id, 0), name)).
+    """
+    cursor = conn.execute(
+        """
+        INSERT INTO transaction_types (user_id, name, kind, bucket, is_system_default)
+        VALUES (?, ?, ?, ?, 0)
+        """,
+        (user_id, name, kind, bucket),
+    )
+    conn.commit()
+    return TransactionType(
+        id=cursor.lastrowid,  # type: ignore[arg-type]
+        user_id=user_id,
+        name=name,
+        kind=kind,
+        bucket=bucket,
+        is_system_default=False,
+    )
